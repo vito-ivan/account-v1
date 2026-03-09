@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    image: account-v1:1.0.0
+    container_name: account-v1
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: default
+    restart: unless-stopped

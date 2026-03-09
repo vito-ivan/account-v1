@@ -1,0 +1,11 @@
+package com.idm.account.domain.port.in;
+
+import com.idm.account.domain.model.Account;
+import reactor.core.publisher.Mono;
+
+import java.util.UUID;
+
+public interface ValidateAccountStatusUseCase {
+
+    Mono<Account> validateAccountStatus(UUID accountId);
+}

@@ -1,0 +1,348 @@
+openapi: 3.0.3
+info:
+  title: Account V1
+  version: 1.0.0
+  description: API for managing bank accounts
+
+servers:
+  - url: http://localhost:8081
+    description: Local environment
+
+tags:
+  - name: Accounts
+    description: Bank account operations
+
+paths:
+  /accounts:
+    post:
+      tags:
+        - Accounts
+      summary: Create a bank account
+      operationId: createAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountRequest'
+      responses:
+        '201':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppException'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppException'
+
+    get:
+      tags:
+        - Accounts
+      summary: Get account by account number
+      operationId: getAccountByNumber
+      parameters:
+        - name: accountNumber
+          in: query
+          required: true
+          description: Bank account number
+          schema:
+            type: string
+            minLength: 14
+            maxLength: 14
+            pattern: '^[0-9]+$'
+            example: "00123456789012"
+      responses:
+        '200':
+          description: Account found successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppException'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppException'
+
+  /accounts/{accountId}:
+    get:
+      tags:
+        - Accounts
+      summary: Get account by account id
+      operationId: getAccountById
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: Account identifier
+          schema:
+            $ref: '#/components/schemas/AccountId'
+      responses:
+        '200':
+          description: Account found successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppException'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppException'
+
+  /accounts/{accountId}/balance:
+    get:
+      tags:
+        - Accounts
+      summary: Get account balance
+      operationId: getAccountBalance
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: Account identifier
+          schema:
+            $ref: '#/components/schemas/AccountId'
+      responses:
+        '200':
+          description: Balance retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppException'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppException'
+
+    put:
+      tags:
+        - Accounts
+      summary: Update account balance
+      operationId: updateAccountBalance
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: Account identifier
+          schema:
+            $ref: '#/components/schemas/AccountId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBalanceRequest'
+      responses:
+        '204':
+          description: Balance updated successfully
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppException'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppException'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppException'
+
+  /accounts/{accountId}/status:
+    get:
+      tags:
+        - Accounts
+      summary: Validate whether the account exists and is active
+      operationId: validateAccountStatus
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: Account identifier
+          schema:
+            $ref: '#/components/schemas/AccountId'
+      responses:
+        '200':
+          description: Account status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountStatusResponse'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppException'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppException'
+
+components:
+  schemas:
+    AccountId:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+      # x-field-extra-annotation: "@jakarta.validation.constraints.NotBlank"
+
+    CreateAccountRequest:
+      type: object
+      required:
+        - customerId
+        - accountNumber
+        - accountType
+        - currency
+        - initialBalance
+      properties:
+        customerId:
+          type: string
+          minLength: 10
+          maxLength: 10
+          pattern: '^[A-Z0-9-]+$'
+          example: "CUST-20001"
+        accountNumber:
+          type: string
+          minLength: 14
+          maxLength: 14
+          pattern: '^[0-9]+$'
+          example: "00123456789012"
+        accountType:
+          type: string
+          enum:
+            - SAVINGS
+            - CHECKING
+          example: SAVINGS
+        currency:
+          type: string
+          enum:
+            - PEN
+            - USD
+          example: PEN
+        initialBalance:
+          type: number
+          format: decimal
+          example: 1500.00
+
+    UpdateBalanceRequest:
+      type: object
+      required:
+        - balance
+      properties:
+        balance:
+          type: number
+          format: decimal
+          minimum: 0
+          example: 1750.00
+
+    AccountResponse:
+      type: object
+      properties:
+        accountId:
+          $ref: '#/components/schemas/AccountId'
+        customerId:
+          type: string
+          example: "CUST-20001"
+        accountNumber:
+          type: string
+          example: "00123456789012"
+        accountType:
+          type: string
+          example: SAVINGS
+        currency:
+          type: string
+          example: PEN
+        balance:
+          type: number
+          format: decimal
+          example: 1500.00
+        active:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-03-07T10:00:00Z"
+
+    BalanceResponse:
+      type: object
+      properties:
+        accountId:
+          $ref: '#/components/schemas/AccountId'
+        accountNumber:
+          type: string
+          example: "00123456789012"
+        currency:
+          type: string
+          example: PEN
+        balance:
+          type: number
+          format: decimal
+          example: 1500.00
+
+    AccountStatusResponse:
+      type: object
+      properties:
+        accountId:
+          $ref: '#/components/schemas/AccountId'
+        exists:
+          type: boolean
+          example: true
+        active:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Account exists and is active"
+
+    AppException:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "ACCOUNT_NOT_FOUND"
+        message:
+          type: string
+          example: "The account was not found"
